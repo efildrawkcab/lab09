@@ -3,10 +3,11 @@ const User = require("../models/user.model");
 const router = express.Router();
 const auth = require("../middleware/auth");
 
-
+//user registration
 router.post("/users", async (req, res) => {
     // Create a new user
     console.log("Request body: ", req.body);
+    res.json(req.body);
     try {
         const user = new User(req.body);
         await user.save();
@@ -19,10 +20,13 @@ router.post("/users", async (req, res) => {
     }
 });
 
+//user log in
 router.post("/users/login", async (req, res) => {
     //Login a registered user
     try {
         let { email, password } = req.body;
+
+        res.json({email, password});
         let user = await User.findByCredentials(email, password);
         if (!user) {
             return res.status(401).send({ error: "Login failed!" });
@@ -35,8 +39,16 @@ router.post("/users/login", async (req, res) => {
     }
 });
 
-router.get("/users/profile", auth, (req, res) => {
-    res.send(`Profile: ${JSON.stringify(req.user)} `);
+//user profile
+router.get("/users/profile", auth, async (req, res) => {
+
+    let user = await User.findById(req.user._id);
+    if(user){
+        res.json(req.user);
+    }
+    else{
+        res.status(404).send("user not found");
+    }
 });
 
 module.exports = router;
